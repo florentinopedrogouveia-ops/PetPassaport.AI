@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PetPassport.ai — Leve seu pet para o mundo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand: #E8A04A;
+      --brand-light: #F5C07A;
+      --brand-dark: #B8742A;
+      --bg: #0C0B09;
+      --surface: #161410;
+      --surface2: #1E1B14;
+      --surface3: #26231A;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --text: #F0EBE0;
+      --muted: rgba(240,235,224,0.45);
+      --muted2: rgba(240,235,224,0.25);
+      --radius: 18px;
+      --radius-sm: 12px;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0 32px;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.5px;
+      color: var(--brand);
+    }
+    .logo span { color: var(--text); font-weight: 400; }
+
+    .nav-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(232,160,74,0.1);
+      border: 1px solid rgba(232,160,74,0.25);
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 30px;
+      letter-spacing: 0.3px;
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 20px 0 48px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(232,160,74,0.08);
+      border: 1px solid rgba(232,160,74,0.2);
+      border-radius: 30px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--brand-light);
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--brand);
+    }
+
+    .hero p {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.65;
+    }
+
+    /* MAIN APP */
+    .app-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 800px) {
+      .app-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* STEP 1 - API KEY */
+    .api-wrap {
+      position: relative;
+    }
+    .api-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 13px 16px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .api-input:focus { border-color: rgba(232,160,74,0.5); }
+    .api-input::placeholder { color: var(--muted2); }
+
+    .api-hint {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .api-hint a { color: var(--brand); text-decoration: none; }
+    .api-hint a:hover { text-decoration: underline; }
+
+    /* STEP 2 - UPLOAD */
+    .upload-zone {
+      border: 1.5px dashed rgba(232,160,74,0.25);
+      border-radius: var(--radius-sm);
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(232,160,74,0.02);
+      position: relative;
+      overflow: hidden;
+    }
+    .upload-zone:hover {
+      border-color: rgba(232,160,74,0.5);
+      background: rgba(232,160,74,0.05);
+    }
+    .upload-zone.has-image {
+      padding: 0;
+      border-style: solid;
+      border-color: rgba(232,160,74,0.35);
+      height: 200px;
+    }
+    .upload-zone.has-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 11px;
+      display: block;
+    }
+    .upload-icon-wrap {
+      width: 52px; height: 52px;
+      background: rgba(232,160,74,0.1);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+      font-size: 24px;
+    }
+    .upload-hint { font-size: 13px; color: var(--muted); }
+    .upload-hint strong { color: var(--brand); font-weight: 500; }
+    #fileInput { display: none; }
+
+    .change-btn {
+      position: absolute;
+      bottom: 8px; right: 8px;
+      background: rgba(0,0,0,0.65);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      display: none;
+    }
+    .upload-zone.has-image .change-btn { display: block; }
+
+    /* STEP 3 - DESTINATIONS */
+    .dest-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .dest-btn {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      width: 100%;
+    }
+    .dest-btn:hover { border-color: rgba(232,160,74,0.4); background: var(--surface3); }
+    .dest-btn.active {
+      border-color: var(--brand);
+      background: rgba(232,160,74,0.08);
+    }
+    .dest-flag { font-size: 22px; display: block; margin-bottom: 5px; }
+    .dest-name { font-size: 12px; font-weight: 500; line-height: 1.3; }
+    .dest-place { font-size: 10px; color: var(--muted); line-height: 1.3; }
+
+    /* GENERATE BUTTON */
+    .generate-btn {
+      width: 100%;
+      background: var(--brand);
+      color: #1A0A00;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .generate-btn:hover:not(:disabled) { background: var(--brand-light); transform: translateY(-1px); }
+    .generate-btn:active:not(:disabled) { transform: translateY(0); }
+    .generate-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* RIGHT PANEL */
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 560px;
+    }
+
+    .result-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface2);
+      position: relative;
+      min-height: 400px;
+    }
+
+    .result-area img.generated {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      position: absolute;
+      inset: 0;
+    }
+
+    .result-placeholder {
+      text-align: center;
+      padding: 40px;
+    }
+    .result-placeholder .globe { font-size: 56px; display: block; margin-bottom: 16px; opacity: 0.6; }
+    .result-placeholder h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+    .result-placeholder p { font-size: 13px; color: var(--muted2); line-height: 1.7; }
+
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(12,11,9,0.88);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      display: none;
+    }
+    .loading-overlay.visible { display: flex; }
+
+    .spinner {
+      width: 44px; height: 44px;
+      border: 2.5px solid rgba(232,160,74,0.15);
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      animation: spin 0.85s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      text-align: center;
+    }
+    .loading-text span {
+      font-size: 13px;
+      color: var(--muted);
+      display: block;
+    }
+    .loading-text strong {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      color: var(--brand);
+      display: block;
+      margin-top: 4px;
+    }
+
+    .result-footer {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .result-dest-info { flex: 1; }
+    .result-dest-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+    .result-dest-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .download-btn {
+      background: var(--surface3);
+      border: 1px solid rgba(232,160,74,0.3);
+      color: var(--brand);
+      border-radius: var(--radius-sm);
+      padding: 10px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+      display: none;
+    }
+    .download-btn:hover { background: rgba(232,160,74,0.1); }
+    .download-btn.visible { display: block; }
+
+    /* ERROR */
+    .error-box {
+      background: rgba(200,50,50,0.08);
+      border: 1px solid rgba(200,50,50,0.2);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #FF8888;
+      margin: 0 20px 16px;
+      display: none;
+      line-height: 1.5;
+    }
+    .error-box.visible { display: block; }
+
+    /* STEPS */
+    .step-group {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .step-num {
+      width: 24px; height: 24px;
+      background: rgba(232,160,74,0.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brand);
+      flex-shrink: 0;
+    }
+    .step-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.2px;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding-top: 48px;
+      font-size: 12px;
+      color: var(--muted2);
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <nav>
+    <div class="logo">PetPassport<span>.ai</span></div>
+    <div class="nav-badge">✦ Powered by Gemini AI</div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-eyebrow">✈️ &nbsp;Seu pet pelo mundo</div>
+    <h1>Leve seu pet para qualquer<br><em>lugar do mundo</em></h1>
+    <p>Envie uma foto do seu bichinho e a IA vai colocá-lo em qualquer destino do planeta — realístico, criativo e compartilhável.</p>
+  </div>
+
+  <div class="app-grid">
+    <!-- ESQUERDA -->
+    <div class="step-group">
+
+      <!-- Step 1: API Key -->
+      <div class="card">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-title">Sua Gemini API Key</div>
+        </div>
+        <div class="api-wrap">
+          <input class="api-input" type="password" id="apiKey" placeholder="Cole sua chave aqui: AIza..." oninput="checkReady()" autocomplete="off">
+          <p class="api-hint">Obtenha sua chave grátis em <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a></p>
+        </div>
+      </div>
+
+      <!-- Step 2: Upload -->
+      <div class="card">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-title">Foto do seu pet</div>
+        </div>
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-icon-wrap">📸</div>
+          <div class="upload-hint"><strong>Clique para enviar</strong><br>ou arraste a foto aqui</div>
+          <button class="change-btn" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">Trocar foto</button>
+        </div>
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+
+      <!-- Step 3: Destination -->
+      <div class="card">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div class="step-title">Escolha o destino</div>
+        </div>
+        <div class="dest-grid">
+          <button class="dest-btn" data-dest="Paris, França" data-scene="Torre Eiffel ao fundo, ruas parisienses" onclick="selectDest(this)">
+            <span class="dest-flag">🇫🇷</span>
+            <div class="dest-name">Paris</div>
+            <div class="dest-place">Torre Eiffel</div>
+          </button>
+          <button class="dest-btn" data-dest="Tóquio, Japão" data-scene="flores de cerejeira sakura, templos japoneses" onclick="selectDest(this)">
+            <span class="dest-flag">🇯🇵</span>
+            <div class="dest-name">Tóquio</div>
+            <div class="dest-place">Cerejeiras</div>
+          </button>
+          <button class="dest-btn" data-dest="New York, EUA" data-scene="Times Square, arranha-céus de Manhattan" onclick="selectDest(this)">
+            <span class="dest-flag">🇺🇸</span>
+            <div class="dest-name">New York</div>
+            <div class="dest-place">Times Square</div>
+          </button>
+          <button class="dest-btn" data-dest="Bali, Indonésia" data-scene="templos balineses, arrozais verdes exuberantes" onclick="selectDest(this)">
+            <span class="dest-flag">🇮🇩</span>
+            <div class="dest-name">Bali</div>
+            <div class="dest-place">Templos</div>
+          </button>
+          <button class="dest-btn" data-dest="Santorini, Grécia" data-scene="casas brancas com cúpulas azuis, mar Mediterrâneo" onclick="selectDest(this)">
+            <span class="dest-flag">🇬🇷</span>
+            <div class="dest-name">Santorini</div>
+            <div class="dest-place">Mar azul</div>
+          </button>
+          <button class="dest-btn" data-dest="Rio de Janeiro, Brasil" data-scene="Cristo Redentor, Pão de Açúcar, praia de Copacabana" onclick="selectDest(this)">
+            <span class="dest-flag">🇧🇷</span>
+            <div class="dest-name">Rio de Janeiro</div>
+            <div class="dest-place">Cristo Redentor</div>
+          </button>
+          <button class="dest-btn" data-dest="Machu Picchu, Peru" data-scene="ruínas incas de Machu Picchu, montanhas dos Andes" onclick="selectDest(this)">
+            <span class="dest-flag">🇵🇪</span>
+            <div class="dest-name">Machu Picchu</div>
+            <div class="dest-place">Ruínas incas</div>
+          </button>
+          <button class="dest-btn" data-dest="Amsterdã, Holanda" data-scene="canais, tulipas holandesas coloridas" onclick="selectDest(this)">
+            <span class="dest-flag">🇳🇱</span>
+            <div class="dest-name">Amsterdã</div>
+            <div class="dest-place">Canais e tulipas</div>
+          </button>
+          <button class="dest-btn" data-dest="Dubai, Emirados Árabes" data-scene="Burj Khalifa, deserto dourado, luxo árabe" onclick="selectDest(this)">
+            <span class="dest-flag">🇦🇪</span>
+            <div class="dest-name">Dubai</div>
+            <div class="dest-place">Burj Khalifa</div>
+          </button>
+        </div>
+      </div>
+
+      <button class="generate-btn" id="generateBtn" onclick="generate()" disabled>
+        <span>🌍</span> Gerar Aventura do Pet
+      </button>
+    </div>
+
+    <!-- DIREITA -->
+    <div class="result-card">
+      <div class="result-area" id="resultArea">
+        <div class="result-placeholder" id="placeholder">
+          <span class="globe">🌍</span>
+          <h3>Aqui aparece a aventura</h3>
+          <p>Preencha os 3 passos ao lado<br>e clique em gerar!</p>
+        </div>
+        <div class="loading-overlay" id="loadingOverlay">
+          <div class="spinner"></div>
+          <div class="loading-text">
+            <span>Levando seu pet para</span>
+            <strong id="loadingDest">...</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-box" id="errorBox"></div>
+
+      <div class="result-footer">
+        <div class="result-dest-info">
+          <div class="result-dest-name" id="resultName">—</div>
+          <div class="result-dest-sub" id="resultSub">Aguardando geração</div>
+        </div>
+        <button class="download-btn" id="downloadBtn" onclick="downloadImg()">⬇ Baixar</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    PetPassport.ai · Feito com Gemini AI · Apenas para uso pessoal
+  </footer>
+</div>
+
+<script>
+  let petImageBase64 = null;
+  let petMimeType = 'image/jpeg';
+  let selectedDest = null;
+  let selectedScene = null;
+  let generatedImageDataUrl = null;
+
+  // Upload
+  const uploadZone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('fileInput');
+
+  uploadZone.addEventListener('click', function(e) {
+    if (e.target.classList.contains('change-btn')) return;
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    petMimeType = file.type || 'image/jpeg';
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      petImageBase64 = ev.target.result.split(',')[1];
+      uploadZone.innerHTML = `<img src="${ev.target.result}" alt="Seu pet"><button class="change-btn" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">Trocar foto</button>`;
+      uploadZone.classList.add('has-image');
+      checkReady();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  uploadZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    uploadZone.style.borderColor = 'rgba(232,160,74,0.7)';
+  });
+  uploadZone.addEventListener('dragleave', function() {
+    uploadZone.style.borderColor = '';
+  });
+  uploadZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    uploadZone.style.borderColor = '';
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+      fileInput.dispatchEvent(new Event('change'));
+    }
+  });
+
+  // Destination
+  function selectDest(btn) {
+    document.querySelectorAll('.dest-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    selectedDest = btn.dataset.dest;
+    selectedScene = btn.dataset.scene;
+    checkReady();
+  }
+
+  // Check if ready
+  function checkReady() {
+    const key = document.getElementById('apiKey').value.trim();
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = !(petImageBase64 && selectedDest && key.length > 20);
+  }
+
+  // Generate
+  async function generate() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const placeholder = document.getElementById('placeholder');
+    const errorBox = document.getElementById('errorBox');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resultArea = document.getElementById('resultArea');
+    const generateBtn = document.getElementById('generateBtn');
+
+    // Remove imagem anterior
+    const oldImg = resultArea.querySelector('img.generated');
+    if (oldImg) oldImg.remove();
+
+    document.getElementById('loadingDest').textContent = selectedDest;
+    placeholder.style.display = 'none';
+    loadingOverlay.classList.add('visible');
+    errorBox.classList.remove('visible');
+    downloadBtn.classList.remove('visible');
+    generateBtn.disabled = true;
+    generatedImageDataUrl = null;
+
+    const prompt = `You are a creative photo editor. Using the pet in this photo, create a fun and realistic travel photo of this EXACT same pet visiting ${selectedDest}, with ${selectedScene} clearly visible in the background. Keep the pet looking EXACTLY the same — same breed, same fur color, same features, same size. Make it look like a real, high-quality travel photograph. Photorealistic style, natural lighting.`;
+
+    try {
+      const response = await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=' + apiKey,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: prompt },
+                { inline_data: { mime_type: petMimeType, data: petImageBase64 } }
+              ]
+            }],
+            generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error.message);
+      }
+
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const imagePart = parts.find(function(p) { return p.inline_data && p.inline_data.data; });
+
+      if (!imagePart) {
+        throw new Error('A IA não retornou uma imagem. Verifique sua API Key ou tente novamente.');
+      }
+
+      const mime = imagePart.inline_data.mime_type;
+      const b64 = imagePart.inline_data.data;
+      generatedImageDataUrl = 'data:' + mime + ';base64,' + b64;
+
+      const img = document.createElement('img');
+      img.src = generatedImageDataUrl;
+      img.className = 'generated';
+      img.alt = 'Pet em ' + selectedDest;
+      resultArea.appendChild(img);
+
+      document.getElementById('resultName').textContent = selectedDest;
+      document.getElementById('resultSub').textContent = 'Gerado com Gemini AI ✦';
+      downloadBtn.classList.add('visible');
+
+    } catch (err) {
+      let msg = err.message || 'Erro desconhecido.';
+      if (msg.includes('API_KEY_INVALID') || msg.includes('API key')) {
+        msg = 'API Key inválida. Verifique se copiou corretamente em aistudio.google.com.';
+      } else if (msg.includes('quota') || msg.includes('QUOTA')) {
+        msg = 'Cota da API esgotada. Aguarde ou verifique seu plano no Google AI Studio.';
+      }
+      errorBox.textContent = '❌ ' + msg;
+      errorBox.classList.add('visible');
+      placeholder.style.display = 'block';
+    } finally {
+      loadingOverlay.classList.remove('visible');
+      generateBtn.disabled = false;
+      checkReady();
+    }
+  }
+
+  // Download
+  function downloadImg() {
+    if (!generatedImageDataUrl) return;
+    const a = document.createElement('a');
+    a.href = generatedImageDataUrl;
+    const slug = selectedDest.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+    a.download = 'petpassport-' + slug + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+</script>
+</body>
+</html>
